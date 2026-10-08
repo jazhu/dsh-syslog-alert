@@ -49,8 +49,7 @@
     "ops"
   ],
   "scripts": {
-    "build": "node build.mjs",
-    "prepare": "node build.mjs"
+    "build": "node build.mjs"
   },
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
