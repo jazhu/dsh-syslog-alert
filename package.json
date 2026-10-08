@@ -1,0 +1,66 @@
+{
+  "name": "dsh-syslog-alert",
+  "displayName": "智能告警中心",
+  "description": "智能告警中心：插件内起 UDP/TCP syslog 接收服务，网络设备发来的告警日志入站后自动完成 解析 → 预过滤 → LLM 判读 → SSH 采集现场数据 → 出结论与处置建议，并在右侧栏「智能告警中心」展示实时告警流与每条告警的完整分析时间线。v1 只读：日志内容永远不能直接变成设备命令，必须过 show/display/get/diagnose 前缀白名单；写操作只出草稿 + 人工审批。",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "main": "dist/index.mjs",
+  "icon": "./icon.svg",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./client": "./dist/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "cordis.patch.yml",
+    "locale",
+    "icon.svg",
+    "README.md",
+    "README-zh.md",
+    "README-es.md",
+    "README-pt.md",
+    "README-hi.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "slots",
+        "sidebarRightTabs",
+        "sidebarRight",
+        "uiWorkspace"
+      ],
+      "platform": "web"
+    }
+  },
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "syslog",
+    "alert",
+    "network",
+    "ops"
+  ],
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "packageManager": "pnpm@11.7.0",
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "esbuild": "^0.25.12",
+    "typescript": "^5.6.0"
+  },
+  "dependencies": {}
+}

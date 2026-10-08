@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Smart Alert Center">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3a67"/>
+      <stop offset="1" stop-color="#141b30"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <path d="M32 13 L46 18.5 V30.5 C46 39.5 40 46.5 32 49.5 C24 46.5 18 39.5 18 30.5 V18.5 Z"
+        fill="none" stroke="#5eead4" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M32 22 v14" stroke="#f87171" stroke-width="3.2" stroke-linecap="round"/>
+  <circle cx="32" cy="42" r="2.1" fill="#f87171"/>
+  <path d="M8 26 h6 M8 38 h6 M50 26 h6 M50 38 h6" stroke="#93a4d8" stroke-width="2.2" stroke-linecap="round"/>
+</svg>

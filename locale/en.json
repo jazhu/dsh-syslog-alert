@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Smart Alert Center",
+    "description": "Runs a UDP/TCP syslog receiver inside DSH, then turns each device alert into a full analysis: parse, pre-filter, LLM triage, read-only SSH collection on the device, and a verdict with remediation steps."
+  }
+}

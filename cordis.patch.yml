@@ -1,0 +1,4 @@
+# dsh-syslog-alert bundle patch.
+- insert:
+    - id: dsh-syslog-alert
+      name: dsh-syslog-alert

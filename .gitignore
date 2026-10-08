@@ -1,0 +1,16 @@
+# build output
+dist/
+
+# dependencies
+node_modules/
+
+# local probe leftovers
+probe-out.txt
+neg.txt
+
+# logs
+*.log
+
+# editor
+.vscode/
+.idea/
