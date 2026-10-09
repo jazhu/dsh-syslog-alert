@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Smart Alert Center",
-    "description": "Runs a UDP/TCP syslog receiver inside DSH, then turns each device alert into a full analysis: parse, pre-filter, LLM triage, read-only SSH collection on the device, and a verdict with remediation steps."
+    "description": "Runs a UDP/TCP syslog receiver inside DSH, then routes each device alert through a full noise-reduction pipeline: parse, pre-filter, fingerprint dedup, per-device rate limit, and storm aggregation. The first alert of the day opens an ordinary session for the agent to analyse; the agent calls syslog_conclude to write the conclusion back into the alert detail. The plugin itself makes no model calls, and log content is always treated as untrusted data."
   }
 }

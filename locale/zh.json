@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "智能告警中心",
-    "description": "在 DSH 内起 UDP/TCP syslog 接收服务，把网络设备发来的每条告警走完整分析链路：解析、预过滤、LLM 判读、SSH 只读采集现场数据，最后出结论与处置建议。"
+    "description": "在 DSH 内起 UDP/TCP syslog 接收服务，把网络设备发来的每条告警走完整降噪链路：解析、预过滤、指纹去重、每设备限流、风暴聚合。当天第一条告警自动创建普通会话交给 agent 分析，结论由 agent 调用 syslog_conclude 写回详情。插件自身不做任何模型调用，日志永远按不可信数据处理。"
   }
 }
