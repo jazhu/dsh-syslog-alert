@@ -185,15 +185,20 @@ function AlertRow(props: { alert: Alert; selected: boolean; onSelect: () => void
     h('span', { className: `sla-sev ${sevClass(sev)}` }),
     h('div', { className: 'sla-main' },
       h('div', { className: 'sla-line1' },
-        h('b', null, alert.deviceName ?? '未映射设备'),
+        h('b', null, alert.deviceName ?? alert.sourceIp ?? '未映射设备'),
+        alert.deviceName && alert.sourceIp ? h('span', { className: 'sla-devip' }, alert.sourceIp) : null,
         alert.message.tag ? h('code', null, alert.message.tag) : null,
         alert.count > 1 ? h('span', { className: 'sla-rep' }, `×${alert.count}`) : null,
       ),
       h('div', { className: 'sla-line2' }, excerpt),
       h('div', { className: 'sla-line3' },
-        h('span', { className: 'sla-badge' }, STAGE_LABELS[alert.stage] ?? alert.stage),
-        alert.sessionConclusion || alert.analysisPending
-          ? h('span', { className: `sla-badge v${alert.analysisPending ? ' warn' : ''}` }, alert.analysisPending ? '分析中' : '有结论')
+        alert.sessionConclusion
+          ? h('span', { className: 'sla-badge v ok' }, 'AI 结论')
+          : alert.analysisPending
+            ? h('span', { className: 'sla-badge v warn' }, 'AI 分析中')
+            : null,
+        alert.sessionConclusion
+          ? h('span', { className: 'sla-conc' }, alert.sessionConclusion.replace(/\s+/g, ' ').slice(0, 80))
           : null,
       ),
     ),
@@ -812,7 +817,9 @@ const CSS = `
 .sla-line1 { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .sla-line1 b { font-size: 13px; font-weight: 500; color: var(--dsw-alias-label-primary, #f9fafb); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sla-line1 code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11.5px; color: var(--dsw-alias-state-business-primary, #4176e6); flex: none; }
+.sla-devip { flex: none; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 10.5px; color: var(--dsw-alias-label-caption, #81858c); }
 .sla-rep { flex: none; font-size: 11px; color: var(--dsw-alias-state-warn-label, #dd8629); }
+.sla-conc { flex: 1; min-width: 0; font-size: 11px; color: var(--dsw-alias-label-secondary, #cfd3d6); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sla-line2 { margin-top: 3px; font-size: 12px; line-height: 17px; color: var(--dsw-alias-label-tertiary, #9a9aa6); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sla-line3 { display: flex; align-items: center; gap: 5px; margin-top: 4px; }
 .sla-time { font-size: 11px; color: var(--dsw-alias-label-caption, #81858c); font-variant-numeric: tabular-nums; }

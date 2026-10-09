@@ -140,7 +140,8 @@ function AlertRow(props) {
       (0, import_react.createElement)(
         "div",
         { className: "sla-line1" },
-        (0, import_react.createElement)("b", null, alert.deviceName ?? "\u672A\u6620\u5C04\u8BBE\u5907"),
+        (0, import_react.createElement)("b", null, alert.deviceName ?? alert.sourceIp ?? "\u672A\u6620\u5C04\u8BBE\u5907"),
+        alert.deviceName && alert.sourceIp ? (0, import_react.createElement)("span", { className: "sla-devip" }, alert.sourceIp) : null,
         alert.message.tag ? (0, import_react.createElement)("code", null, alert.message.tag) : null,
         alert.count > 1 ? (0, import_react.createElement)("span", { className: "sla-rep" }, `\xD7${alert.count}`) : null
       ),
@@ -148,8 +149,8 @@ function AlertRow(props) {
       (0, import_react.createElement)(
         "div",
         { className: "sla-line3" },
-        (0, import_react.createElement)("span", { className: "sla-badge" }, STAGE_LABELS[alert.stage] ?? alert.stage),
-        alert.sessionConclusion || alert.analysisPending ? (0, import_react.createElement)("span", { className: `sla-badge v${alert.analysisPending ? " warn" : ""}` }, alert.analysisPending ? "\u5206\u6790\u4E2D" : "\u6709\u7ED3\u8BBA") : null
+        alert.sessionConclusion ? (0, import_react.createElement)("span", { className: "sla-badge v ok" }, "AI \u7ED3\u8BBA") : alert.analysisPending ? (0, import_react.createElement)("span", { className: "sla-badge v warn" }, "AI \u5206\u6790\u4E2D") : null,
+        alert.sessionConclusion ? (0, import_react.createElement)("span", { className: "sla-conc" }, alert.sessionConclusion.replace(/\s+/g, " ").slice(0, 80)) : null
       )
     ),
     (0, import_react.createElement)(
@@ -824,7 +825,9 @@ var CSS = `
 .sla-line1 { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .sla-line1 b { font-size: 13px; font-weight: 500; color: var(--dsw-alias-label-primary, #f9fafb); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sla-line1 code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11.5px; color: var(--dsw-alias-state-business-primary, #4176e6); flex: none; }
+.sla-devip { flex: none; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 10.5px; color: var(--dsw-alias-label-caption, #81858c); }
 .sla-rep { flex: none; font-size: 11px; color: var(--dsw-alias-state-warn-label, #dd8629); }
+.sla-conc { flex: 1; min-width: 0; font-size: 11px; color: var(--dsw-alias-label-secondary, #cfd3d6); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sla-line2 { margin-top: 3px; font-size: 12px; line-height: 17px; color: var(--dsw-alias-label-tertiary, #9a9aa6); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sla-line3 { display: flex; align-items: center; gap: 5px; margin-top: 4px; }
 .sla-time { font-size: 11px; color: var(--dsw-alias-label-caption, #81858c); font-variant-numeric: tabular-nums; }
