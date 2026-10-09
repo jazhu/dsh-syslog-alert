@@ -1,22 +1,22 @@
-# Central de Alertas Inteligente (`dsh-syslog-alert`)
+# Centro de Alertas Inteligente (`dsh-syslog-alert`)
 
-Executa um receptor syslog UDP/TCP **dentro do DSH** e transforma cada alerta do dispositivo
-em uma análise completa: parse → pré-filtro → triagem por LLM → coleta SSH somente leitura no
-dispositivo → veredito com passos de remediação. Os alertas e suas cronologias aparecem em uma
-aba da barra lateral direita.
+Executa um receptor syslog UDP/TCP **dentro do DSH** e ingere cada alerta do dispositivo em
+tempo real: parse → pré-filtro → deduplicação por impressão digital → limite por dispositivo →
+registro de alerta → entrega à sessão de alertas do dia. Os alertas fluem no painel; clique em
+uma linha para ver a cronologia completa daquele alerta.
 
-**Somente leitura por design.** Um payload syslog é entrada não confiável, então o texto do log
-nunca pode virar um comando. Qualquer comando proposto pelo modelo precisa passar por uma lista
-branca de prefixos `show` / `display` / `get` / `diagnose`; escritas só viram rascunhos para
-aprovação humana.
+**A análise é delegada ao agente da sessão.** O próprio plugin não faz nenhuma chamada de modelo:
+o primeiro log do dia abre uma sessão ordinária, os logs seguintes são publicados nela, e o
+agente os analisa e chama a ferramenta `syslog_conclude` para escrever a conclusão de volta no
+detalhe do alerta.
+
+> Versão em inglês: [README.md](./README.md). 中文说明见 [README-zh.md](./README-zh.md).
 
 ## Requirements
 
-- DSH com os plugins `agents` / `subagents` habilitados (análise profunda e sessões diárias)
-- Node 22.19+ ou 24+ (o runtime embutido do DSH atende)
-- Para a **coleta de dados do dispositivo**: o plugin `dsh-hillstone-cli-ops` precisa estar
-  instalado e habilitado no mesmo DSH. Sem ele, os alertas chegam e são triados, mas a coleta
-  SSH é pulada.
+- DSH com `sessionController` disponível (integrado no host; a sessão de alertas do dia não
+  precisa de provider nem de escolha de modelo)
+- Node 22.19+ ou 24+ (o runtime incluído no DSH atende)
 
 ## Install
 
@@ -30,39 +30,41 @@ aponte o encaminhador syslog do dispositivo para o endereço do host DSH.
 ## How it works
 
 ```
-socket → parse → pre-filter (zero LLM) → fingerprint dedup → per-device rate limit
-       → alert record → queue pump → triage → collect → verdict → SSE
+socket → parse → pre-filter → fingerprint dedup → per-device rate limit
+       → alert record → day-session delivery → SSE
 ```
 
-Tudo acima da fila é síncrono e barato; tudo abaixo pode levar segundos. Quatro travões
-independentes protegem contra um flap que emite milhares de linhas: deduplicação por
-impressão digital, limite por dispositivo por minuto, comporta global de concorrência e
-agregação de tempestade.
+A rota de ingestão é totalmente síncrona e barata. Quatro freios independentes protegem contra
+um flap que emite milhares de linhas: pré-filtro, deduplicação por impressão digital, limite por
+dispositivo e por minuto, e agregação de tempestade. A análise não está na rota de ingestão —
+ocorre na sessão de alertas do dia, feita pelo agente.
 
 ## Safety model
 
-- O texto do log é sempre entregue ao modelo como **dados** rotulados, nunca como instruções.
-- Um comando proposto precisa casar com a lista branca de prefixos; separadores, travessia de
-  caminho e prefixos de escrita conhecidos são rejeitados antes da execução.
-- Um quadro cujo remetente não é um dispositivo mapeado é armazenado e sinalizado, mas nunca
-  pode disparar um comando SSH.
-- Quadros que não podem ser interpretados com confiança são armazenados e exibidos, e nunca
-  enviados ao modelo.
+- O texto do log entra sempre no prompt dentro de uma valla marcada como **dados**, nunca misturada
+  com instruções; a sessão do dia compartilha um mesmo neutralizador, de modo que uma valla de
+  fechamento falsificada é reescrita e perde o efeito.
+- O id do alerta, o nome do dispositivo e o log original são adicionados pelo próprio plugin; um
+  prompt personalizado só pode substituir a linha de instrução, e nada do log pode deslocá-los.
+- Um pacote cujo remetente não é um dispositivo mapeado segue a política de não mapeados: é
+  guardado e sinalizado por padrão.
+- Pacotes que não podem ser analisados com confiança são guardados e exibidos, sem serem usados
+  como campos estruturados.
 
 ## Configuration
 
-Pelo painel de configurações: portas e transportes, mapeamento de origens, lista branca de
-prefixos, provider/modelo de LLM, chave de análise profunda e sessão diária.
+Pelo painel de configurações: portas e transportes, mapeamento de origens e a sessão de alertas do
+dia (prefixo do título, workspace, prompt).
 
 ## Troubleshooting
 
-| Sintoma | Causa e correção |
+| Sintoma | Causa e solução |
 | --- | --- |
 | Nenhum alerta chega | Verifique as **portas vinculadas**; uma falha de bind (ex.: a 514 exige elevação no Linux) é reportada como porta com falha, não ignorada. |
-| Alertas chegam, sem veredicto | A chamada ao LLM falhou ou foi limitada. Veja os contadores de dedup/limite/descarte e a cronologia do alerta. |
-| A coleta falha | `dsh-hillstone-cli-ops` não está instalado/habilitado, ou o dispositivo não tem credenciais. A coleta é uma etapa separada; o alerta continua válido. |
-| "o host não tem subagent provider" | Habilite os plugins `agents`/`subagents` do host e escolha um provider na lista suspensa (a lista é lida do host, não digitada). |
-| Alterações não aparecem | Encerre completamente e reinicie o cliente DSH — o bundle fica em cache do carregador de módulos. |
+| O detalhe não mostra "当日会话分析结论" | A conclusão é escrita pelo agente da sessão ao chamar `syslog_conclude`. Após uma entrega correta o detalhe mostra primeiro "会话分析中"; se ficar parado, o agente não chamou a ferramenta, ou o alerta já saiu do anel em memória. |
+| A sessão de alertas não foi criada | O estado do painel dá o motivo: o interruptor desligado (当日会话未启用), o host não oferece `sessionController`, ou o primeiro log do dia ainda não chegou. `GET /syslog-api/auto-session` mostra o mesmo estado. |
+| A sessão abriu em um workspace errado | Um workspace que não é caminho absoluto é ignorado (o `cwd` do DSH só aceita caminhos absolutos); o plugin volta ao workspace atual do host e o registra. Uma sessão já aberta hoje não se move. |
+| As alterações não aparecem | Encerre completamente e reinicie o cliente DSH: o bundle fica em cache do carregador de módulos. |
 
 ## License
 
